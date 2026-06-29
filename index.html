@@ -239,7 +239,7 @@
         '6': '-....', '7': '--...', '8': '---..', '9': '----.', '0': '-----'
     };
 
-    // 대한민국 표준 한글 모스 부호 맵
+    // [제공해주신 표준 표 이미지 기반 완벽 매핑 데이터]
     const hangulMorseMap = {
         // 자음
         'ㄱ': '.-..',  'ㄴ': '..-.',  'ㄷ': '-...',  'ㄹ': '...-',  'ㅁ': '--',
@@ -251,7 +251,7 @@
         'ㅐ': '--.-',  'ㅔ': '-.--'
     };
 
-    // 복합 자모음을 기본 자모음 배열로 쪼개주는 매핑 (유연한 처리를 위함)
+    // 복합 자모음 처리용 매핑 테이블
     const complexJamoMap = {
         'ㄲ': ['ㄱ', 'ㄱ'], 'ㄸ': ['ㄷ', 'ㄷ'], 'ㅃ': ['ㅂ', 'ㅂ'], 'ㅆ': ['ㅅ', 'ㅅ'], 'ㅉ': ['ㅈ', 'ㅈ'],
         'ㄳ': ['ㄱ', 'ㅅ'], 'ㄵ': ['ㄴ', 'ㅈ'], 'ㄶ': ['ㄴ', 'ㅎ'], 'ㄺ': ['ㄹ', 'ㄱ'], 'ㄻ': ['ㄹ', 'ㅁ'],
@@ -270,7 +270,6 @@
     const separator = document.getElementById('separator');
     const outputResult = document.getElementById('outputResult');
 
-    // 한글 음절을 순수 단일 자모음 배열(ㄱ, ㅏ, ㄴ 등)로 완벽히 분해하는 함수
     function decomposeHangul(char) {
         const code = char.charCodeAt(0);
         if (code >= 0xAC00 && code <= 0xD7A3) {
@@ -281,22 +280,18 @@
             
             let units = [];
             
-            // 1. 초성 분해
             if (complexJamoMap[CHOSUNG[cho]]) units.push(...complexJamoMap[CHOSUNG[cho]]);
             else units.push(CHOSUNG[cho]);
             
-            // 2. 중성 분해
             if (complexJamoMap[JUNGSUNG[jung]]) units.push(...complexJamoMap[JUNGSUNG[jung]]);
             else units.push(JUNGSUNG[jung]);
             
-            // 3. 종성 분해
             if (jong > 0) {
                 if (complexJamoMap[JONGSUNG[jong]]) units.push(...complexJamoMap[JONGSUNG[jong]]);
                 else units.push(JONGSUNG[jong]);
             }
             return units;
         } else if (code >= 0x3131 && code <= 0x318E) {
-            // 자모음 단독 입력 처리
             if (complexJamoMap[char]) return [...complexJamoMap[char]];
             return [char];
         }
@@ -312,24 +307,23 @@
         let resultChunks = [];
 
         for (let char of text) {
-            if (char === ' ') continue; // 공백 제외 규칙 유지
+            if (char === ' ') continue; 
 
             const hamoList = decomposeHangul(char);
 
             if (hamoList !== null) {
-                // 한글 글자 하나 내부의 자모음들을 변환한 뒤 단어 내 구분용 '공백' 하나로 이어붙임
+                // 하나의 글자 내부(자음+모음+받침)에서는 구분선/공백 없이 100% 하나로 컴팩트하게 연결되도록 수정
                 let hangleWordMorse = hamoList.map(jamo => {
                     if (hangulMorseMap[jamo] !== undefined) {
                         return hangulMorseMap[jamo].replace(/\./g, dotChar).replace(/-/g, dashChar);
                     }
                     return '';
-                }).filter(m => m !== '').join(' '); // 자모 간에는 공백 배치
+                }).join(''); // join(' ') 대신 join('')을 사용하여 컴팩트 결합 보장
                 
                 if (hangleWordMorse !== '') {
                     resultChunks.push(hangleWordMorse);
                 }
             } else {
-                // 영문 및 숫자 처리
                 const upperChar = char.toUpperCase();
                 if (morseCodeMap[upperChar] !== undefined) {
                     let englishMorse = morseCodeMap[upperChar].replace(/\./g, dotChar).replace(/-/g, dashChar);
@@ -338,7 +332,6 @@
             }
         }
 
-        // 변환된 각 글자 덩어리 사이를 사용자가 커스텀 지정한 '글자 구분자'로 연결
         outputResult.textContent = resultChunks.join(sepChar);
     }
 
