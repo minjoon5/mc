@@ -249,7 +249,7 @@
         'ㅐ': '--.-',  'ㅔ': '-.--'
     };
 
-    // 복합/이중 자모음 분해 맵 (ㅔ, ㅐ 등 표에 고유 부호가 있는 것들은 그대로 두고, ㅘ, ㄲ 같이 순수 조합만 분해)
+    // 표에 규정되지 않은 '순수 조합 복합 자모음'만 강제 분해하는 맵 (ㅐ, ㅔ 등은 표에 있으므로 보존)
     const complexJamoMap = {
         'ㄲ': ['ㄱ', 'ㄱ'], 'ㄸ': ['ㄷ', 'ㄷ'], 'ㅃ': ['ㅂ', 'ㅂ'], 'ㅆ': ['ㅅ', 'ㅅ'], 'ㅉ': ['ㅈ', 'ㅈ'],
         'ㄳ': ['ㄱ', 'ㅅ'], 'ㄵ': ['ㄴ', 'ㅈ'], 'ㄶ': ['ㄴ', 'ㅎ'], 'ㄺ': ['ㄹ', 'ㄱ'], 'ㄻ': ['ㄹ', 'ㅁ'],
@@ -258,7 +258,7 @@
         'ㅝ': ['ㅜ', 'ㅓ'], 'ㅞ': ['ㅜ', 'ㅔ'], 'ㅟ': ['ㅜ', 'ㅣ'], 'ㅢ': ['ㅡ', 'ㅣ']
     };
 
-    // 표준 한글 유니코드 매핑 인덱스
+    // 대한민국 표준 유니코드 중성(모음) 배치 순서 완벽 고정
     const CHOSUNG = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
     const JUNGSUNG = ['ㅏ', 'ㅐ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅖ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ', 'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ'];
     const JONGSUNG = ['', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
@@ -269,7 +269,6 @@
     const separator = document.getElementById('separator');
     const outputResult = document.getElementById('outputResult');
 
-    // 한글 음절을 자모 배열로 분해하되, 각각을 독립된 "개별 부호 대상"으로 반환
     function decomposeHangul(char) {
         const code = char.charCodeAt(0);
         if (code >= 0xAC00 && code <= 0xD7A3) {
@@ -280,13 +279,16 @@
             
             let units = [];
             
+            // 1. 초성 분해
             if (complexJamoMap[CHOSUNG[cho]]) units.push(...complexJamoMap[CHOSUNG[cho]]);
             else units.push(CHOSUNG[cho]);
             
+            // 2. 중성 분해 (ㅔ, ㅐ 등 표에 독립적으로 명시된 모음은 그대로 보존)
             const exactJung = JUNGSUNG[jung];
             if (complexJamoMap[exactJung]) units.push(...complexJamoMap[exactJung]);
             else units.push(exactJung);
             
+            // 3. 종성 분해
             if (jong > 0) {
                 if (complexJamoMap[JONGSUNG[jong]]) units.push(...complexJamoMap[JONGSUNG[jong]]);
                 else units.push(JONGSUNG[jong]);
@@ -313,7 +315,7 @@
             const hamoList = decomposeHangul(char);
 
             if (hamoList !== null) {
-                // 핵심 수정: 하나의 글자 안에서도 각각의 자음/모음을 "독립된 별개의 문자"로 보고 각각 구분자(sepChar)를 넣을 수 있도록 전개
+                // 자음과 모음을 완벽히 독립된 문자로 분할하여 배열에 순서대로 푸시
                 hamoList.forEach(jamo => {
                     if (hangulMorseMap[jamo] !== undefined) {
                         let converted = hangulMorseMap[jamo].replace(/\./g, dotChar).replace(/-/g, dashChar);
@@ -321,7 +323,6 @@
                     }
                 });
             } else {
-                // 영문 및 숫자 처리
                 const upperChar = char.toUpperCase();
                 if (morseCodeMap[upperChar] !== undefined) {
                     let englishMorse = morseCodeMap[upperChar].replace(/\./g, dotChar).replace(/-/g, dashChar);
@@ -330,7 +331,7 @@
             }
         }
 
-        // 모든 독립 문자(자음, 모음, 영문자, 숫자) 사이사이를 글자 구분자로 연결
+        // 각 독립 자모음/영문자/숫자 사이에 지정한 '글자 구분자'를 균일하게 삽입
         outputResult.textContent = resultChunks.join(sepChar);
     }
 
