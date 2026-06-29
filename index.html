@@ -308,6 +308,7 @@
 
         for (let char of text) {
             if (char === ' ') continue;
+            if (char === '\n') { resultChunks.push('\n'); continue; }
 
             const jamoList = decomposeHangul(char);
 
