@@ -15,7 +15,6 @@
         }
 
         :root {
-            /* 급식 앱 스타일 고유 시그니처 및 연한 윤곽선 공통 정의 */
             --saturation: 200%;
             --border-gradient: linear-gradient(
                 to top right,
@@ -38,7 +37,6 @@
             justify-content: center; 
             align-items: center;
             min-height: 100vh;
-            /* 은은한 배경 그라데이션 */
             background: linear-gradient(135deg, #c8d7fa 0%, #c8cdfa 25%, #dccdff 50%, #c8d7fa 75%, #cddcff 100%);
             position: relative;
             padding: 30px 20px;
@@ -46,7 +44,6 @@
             overflow-x: hidden;
         }
 
-        /* 메인 컨테이너 랩 */
         .container-wrap {
             position: relative; 
             z-index: 10;
@@ -61,7 +58,6 @@
             -webkit-backdrop-filter: saturate(var(--saturation));
         }
         
-        /* 메인 컨테이너 은은한 그라데이션 보더 효과 */
         .container-wrap::before {
             content: ''; position: absolute; inset: 0;
             border-radius: inherit; border: var(--border-style);
@@ -84,7 +80,6 @@
             letter-spacing: -0.5px;
         }
 
-        /* 가로 배치 설정 레이아웃 */
         .config-group {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -105,14 +100,12 @@
             text-align: center;
         }
 
-        /* 그라데이션 보더와 곡률 동시 적용을 위한 가상 요소용 부모 설정 */
         .gradient-border-box {
             position: relative;
             border-radius: var(--r);
             isolation: isolate;
         }
 
-        /* 내부 모든 윤곽선 그라데이션 + 곡률 가상 요소 공통 적용 */
         .gradient-border-box::before {
             content: ''; position: absolute; inset: 0;
             border-radius: inherit; border: var(--border-style);
@@ -122,7 +115,6 @@
             pointer-events: none; z-index: 2;
         }
 
-        /* 단점, 장점, 구분자 입력창 스타일 */
         .input-field input {
             width: 100%;
             padding: 11px;
@@ -139,7 +131,6 @@
             display: block;
         }
 
-        /* 평문 입력창 스타일 */
         textarea {
             width: 100%;
             height: 110px;
@@ -167,7 +158,6 @@
             background-color: rgba(255, 255, 255, 0.85);
         }
 
-        /* 결과 영역 스타일 */
         .output-box {
             padding: 1.2rem;
             border-radius: var(--r); 
@@ -224,9 +214,9 @@
             </div>
         </div>
 
-        <span class="label-title">평문 입력 (영문, 숫자)</span>
+        <span class="label-title">평문 입력 (한글, 영문, 숫자)</span>
         <div class="gradient-border-box">
-            <textarea id="inputText" placeholder="텍스트를 입력하세요."></textarea>
+            <textarea id="inputText" placeholder="텍스트를 입력하세요 (예: 청운고 SOS)"></textarea>
         </div>
 
         <span class="label-title">모스 부호 결과</span>
@@ -237,6 +227,7 @@
 </div>
 
 <script>
+    // 표준 영문/숫자 모스 부호 맵
     const morseCodeMap = {
         'A': '.-',    'B': '-...',  'C': '-.-.',  'D': '-..',   'E': '.',
         'F': '..-.',  'G': '--.',   'H': '....',  'I': '..',    'J': '.---',
@@ -248,14 +239,55 @@
         '6': '-....', '7': '--...', '8': '---..', '9': '----.', '0': '-----'
     };
 
+    // 표준 한글 모스 부호 맵 (자음/모음 단위분리 매핑)
+    const hangulMorseMap = {
+        // 자음 (초성 및 종성 공통 분리 대응)
+        'ㄱ': '.-..',  'ㄴ': '..-.',  'ㄷ': '-...',  'ㄹ': '...-',  'ㅁ': '--',
+        'ㅂ': '.--',   'ㅅ': '--.',   'ㅇ': '-.-',   'ㅈ': '.--.',  'ㅊ': '-.-.',
+        'ㅋ': '-..-',  'ㅌ': '--..',  'ㅍ': '---',   'ㅎ': '.---',
+        'ㄲ': '.-.. .-..', 'ㄸ': '-... -...', 'ㅃ': '.-- .--', 'ㅆ': '--. --.', 'ㅉ': '.--. .--.',
+        'ㄳ': '.-.. --.', 'ㄵ': '..-. .--.', 'ㄶ': '..-. .---', 'ㄺ': '...- .-..', 'ㄻ': '...- --',
+        'ㄼ': '...- .--', 'ㄽ': '...- --.', 'ㄾ': '...- --..', 'ㄿ': '...- ---', 'ㅀ': '...- .---', 'ㅄ': '.-- --.',
+        
+        // 모음
+        'ㅏ': '.',     'ㅑ': '..',    'ㅓ': '-',     'ㅕ': '...',   'ㅗ': '.-',
+        'ㅛ': '-.',    'ㅜ': '....',  'ㅠ': '.-.',   'ㅡ': '-..',   'ㅣ': '..-',
+        'ㅐ': '--.-',  'ㅒ': '.. --.-', 'ㅔ': '-.--',  'ㅖ': '... -.--',
+        'ㅘ': '. .-',  'ㅙ': '. --.-', 'ㅚ': '. ..-',  'ㅝ': '- ....',
+        'ㅞ': '- -.--', 'ㅟ': '.... ..-', 'ㅢ': '-.. ..-'
+    };
+
+    // 한글 유니코드 분해를 위한 초/중/종성 테이블
+    const CHOSUNG = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+    const JUNGSUNG = ['ㅏ', 'ㅐ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅖ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ', 'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ'];
+    const JONGSUNG = ['', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+
     const inputText = document.getElementById('inputText');
     const shortDot = document.getElementById('shortDot');
     const longDash = document.getElementById('longDash');
     const separator = document.getElementById('separator');
     const outputResult = document.getElementById('outputResult');
 
+    // 한글 글자를 자모음 배열로 분해하는 함수
+    function disassembleHangul(char) {
+        const code = char.charCodeAt(0);
+        if (code >= 0xAC00 && code <= 0xD7A3) {
+            const hangulIndex = code - 0xAC00;
+            const cho = Math.floor(hangulIndex / 588);
+            const jung = Math.floor((hangulIndex - (cho * 588)) / 28);
+            const jong = hangulIndex % 28;
+            
+            const result = [CHOSUNG[cho], JUNGSUNG[jung]];
+            if (JONGSUNG[jong] !== '') {
+                result.push(JONGSUNG[jong]);
+            }
+            return result;
+        }
+        return [char]; // 완결된 한글이 아니면 그대로 반환 (예: 단독 자모음)
+    }
+
     function convertToMorse() {
-        const text = inputText.value.toUpperCase();
+        const text = inputText.value;
         const dotChar = shortDot.value;
         const dashChar = longDash.value;
         const sepChar = separator.value;
@@ -263,13 +295,32 @@
         let result = [];
 
         for (let char of text) {
-            if (char === ' ') continue; 
+            if (char === ' ') continue; // 공백 무조건 제외
 
-            if (morseCodeMap[char] !== undefined) {
-                let customMorse = morseCodeMap[char]
-                    .replace(/\./g, dotChar)
-                    .replace(/-/g, dashChar);
-                result.push(customMorse);
+            const code = char.charCodeAt(0);
+            
+            // 한글인 경우 (가 ~ 힣 및 단독 자음/모음 구역)
+            if ((code >= 0xAC00 && code <= 0xD7A3) || (code >= 0x3131 && code <= 0x318E)) {
+                const jamoList = disassembleHangul(char);
+                for (let jamo of jamoList) {
+                    if (hangulMorseMap[jamo] !== undefined) {
+                        // 표준 한글 모스는 공백으로 구분되어 있으므로 치환 후 공백 제거 유지를 위해 split-join 처리
+                        let converted = hangulMorseMap[jamo].split(' ').map(m => 
+                            m.replace(/\./g, dotChar).replace(/-/g, dashChar)
+                        ).join('');
+                        result.push(converted);
+                    }
+                }
+            } 
+            // 영문 및 숫자, 기타 문자인 경우
+            else {
+                const upperChar = char.toUpperCase();
+                if (morseCodeMap[upperChar] !== undefined) {
+                    let converted = morseCodeMap[upperChar]
+                        .replace(/\./g, dotChar)
+                        .replace(/-/g, dashChar);
+                    result.push(converted);
+                }
             }
         }
 
