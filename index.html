@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>커스텀 모스 부호 변환기</title>
+    <title>모스 부호 변환기</title>
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <style>
         * { 
@@ -19,19 +19,19 @@
             --saturation: 200%;
             --border-gradient: linear-gradient(
                 to top right,
-                rgba(160, 185, 240, 0.4) 5%,
-                rgba(210, 200, 245, 0.6) 25%,
-                rgba(210, 200, 245, 0.6) 75%,
-                rgba(160, 185, 240, 0.4) 95%
+                rgba(45, 55, 155, 0.25) 5%,
+                rgba(70, 105, 245, 0.35) 25%,
+                rgba(70, 105, 245, 0.35) 75%,
+                rgba(45, 55, 155, 0.25) 95%
             );
             --glass-shadow:
-                0px 2px 8px 0px rgba(100, 110, 140, 0.06),
-                0px 9px 15px 0px rgba(100, 110, 140, 0.04);
+                0px 2px 8px 0px rgba(45, 55, 155, 0.06),
+                0px 9px 15px 0px rgba(45, 55, 155, 0.04);
             --glass-bg: rgba(255, 255, 255, 0.55);
             /* 모든 요소에 들어갈 연하고 부드러운 윤곽선 스타일 */
             --sub-border: 1.5px solid rgba(160, 185, 240, 0.35);
             --border-style: 1.5px solid transparent;
-            --r: 30px;
+            --r: 20px;
         }
 
         body {
@@ -59,8 +59,8 @@
             overflow: hidden;
             isolation: isolate;
             background: rgba(255, 255, 255, 0.35);
-            backdrop-filter: blur(20px) saturate(var(--saturation));
-            -webkit-backdrop-filter: blur(20px) saturate(var(--saturation));
+            backdrop-filter: saturate(var(--saturation));
+            -webkit-backdrop-filter: saturate(var(--saturation));
         }
         
         /* 메인 컨테이너 은은한 그라데이션 보더 효과 */
@@ -112,7 +112,7 @@
             width: 100%;
             padding: 11px;
             border: var(--sub-border); /* 연한 윤곽선 */
-            border-radius: 20px;
+            border-radius: var(--r);
             text-align: center;
             font-size: 1rem;
             color: #2c3e50;
@@ -129,7 +129,7 @@
             height: 110px;
             padding: 14px;
             border: var(--sub-border); /* 연한 윤곽선 */
-            border-radius: 20px;
+            border-radius: var(--r);
             resize: none;
             font-size: 0.95rem;
             color: #2c3e50;
@@ -186,7 +186,7 @@
 
 <div class="container-wrap">
     <div class="container">
-        <h2>커스텀 모스 부호 변환기</h2>
+        <h2>모스 부호 변환기</h2>
         
         <div class="config-group">
             <div class="input-field">
