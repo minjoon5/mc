@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>커스텀 모스 부호 변환기</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+<style>
+* {
+box-sizing: border-box;
+margin: 0;
+padding: 0;
+-webkit-tap-highlight-color: transparent;
+font-family: 'Pretendard', sans-serif;
+}
+
+:root {
+/* 급식 앱 스타일 고유 시그니처 및 연한 윤곽선 공통 정의 /
+--saturation: 200%;
+--border-gradient: linear-gradient(
+to top right,
+rgba(160, 185, 240, 0.4) 5%,
+rgba(210, 200, 245, 0.6) 25%,
+rgba(210, 200, 245, 0.6) 75%,
+rgba(160, 185, 240, 0.4) 95%
+);
+--glass-shadow:
+0px 2px 8px 0px rgba(100, 110, 140, 0.06),
+0px 9px 15px 0px rgba(100, 110, 140, 0.04);
+--glass-bg: rgba(255, 255, 255, 0.55);
+/ 모든 요소에 들어갈 연하고 부드러운 윤곽선 스타일 */
+--sub-border: 1.5px solid rgba(160, 185, 240, 0.35);
+--border-style: 1.5px solid transparent;
+--r: 30px;
+}
+
+body {
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+min-height: 100vh;
+/* 은은한 배경 그라데이션 */
+background: linear-gradient(135deg, #f0f4fc 0%, #f4f3fa 40%, #f6f0fa 70%, #f0f4fc 100%);
+position: relative;
+padding: 30px 20px;
+-webkit-font-smoothing: antialiased;
+overflow-x: hidden;
+}
+
+/* 메인 컨테이너 랩 */
+.container-wrap {
+position: relative;
+z-index: 10;
+border-radius: var(--r);
+width: 100%;
+max-width: 400px;
+box-shadow: var(--glass-shadow);
+overflow: hidden;
+isolation: isolate;
+background: rgba(255, 255, 255, 0.35);
+backdrop-filter: blur(20px) saturate(var(--saturation));
+-webkit-backdrop-filter: blur(20px) saturate(var(--saturation));
+}
+
+/* 메인 컨테이너 은은한 그라데이션 보더 효과 */
+.container-wrap::before {
+content: ''; position: absolute; inset: 0;
+border-radius: inherit; border: var(--border-style);
+background: var(--border-gradient) border-box;
+-webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+-webkit-mask-composite: xor; mask-composite: exclude;
+pointer-events: none; z-index: 2;
+}
+
+.container {
+padding: 2.2rem 1.8rem;
+}
+
+h2 {
+text-align: center;
+color: #2c3e50;
+margin-bottom: 25px;
+font-size: 1.35rem;
+font-weight: 700;
+letter-spacing: -0.5px;
+}
+
+/* 가로 배치 설정 레이아웃 */
+.config-group {
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 12px;
+margin-bottom: 22px;
+}
+
+.input-field {
+display: flex;
+flex-direction: column;
+}
+
+.input-field label {
+font-size: 0.78rem;
+color: #64748b;
+margin-bottom: 6px;
+font-weight: 600;
+text-align: center;
+}
+
+/* 단점, 장점, 구분자 입력창 윤곽선 적용 /
+.input-field input {
+width: 100%;
+padding: 11px;
+border: var(--sub-border); / 연한 윤곽선 */
+border-radius: 20px;
+text-align: center;
+font-size: 1rem;
+color: #2c3e50;
+font-weight: 700;
+background-color: var(--glass-bg);
+box-shadow: var(--glass-shadow);
+outline: none;
+transition: background-color 0.2s, border-color 0.2s;
+}
+
+/* 평문 입력창 윤곽선 적용 /
+textarea {
+width: 100%;
+height: 110px;
+padding: 14px;
+border: var(--sub-border); / 연한 윤곽선 */
+border-radius: 20px;
+resize: none;
+font-size: 0.95rem;
+color: #2c3e50;
+font-weight: 600;
+margin-bottom: 22px;
+background-color: var(--glass-bg);
+box-shadow: var(--glass-shadow);
+outline: none;
+line-height: 1.5;
+transition: background-color 0.2s, border-color 0.2s;
+}
+
+textarea::placeholder {
+color: #94a3b8;
+}
+
+.input-field input:focus, textarea:focus {
+background-color: rgba(255, 255, 255, 0.85);
+border-color: rgba(160, 185, 240, 0.7); /* 포커스 시 윤곽선 선명하게 */
+}
+
+/* 결과 영역 윤곽선 적용 /
+.output-box {
+padding: 1.2rem;
+border-radius: var(--r);
+font-size: 1.15rem;
+font-weight: 700;
+line-height: 1.6;
+color: #2c3e50;
+text-align: center;
+position: relative;
+background-color: var(--glass-bg);
+border: var(--sub-border); / 연한 윤곽선 */
+box-shadow: var(--glass-shadow);
+word-break: break-all;
+white-space: pre-wrap;
+min-height: 80px;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+
+.label-title {
+font-weight: 600;
+color: #4a5568;
+margin-bottom: 8px;
+display: block;
+font-size: 0.82rem;
+padding-left: 6px;
+}
+</style>
+</head>
+<body>
+
+<div class="container-wrap">
+<div class="container">
+<h2>커스텀 모스 부호 변환기</h2>
+
+<div class="config-group">
+<div class="input-field">
+<label for="shortDot">단점 (Dot)</label>
+<input type="text" id="shortDot" value="1" maxlength="5">
+</div>
+<div class="input-field">
+<label for="longDash">장점 (Dash)</label>
+<input type="text" id="longDash" value="2" maxlength="5">
+</div>
+<div class="input-field">
+<label for="separator">글자 구분자</label>
+<input type="text" id="separator" value="0" maxlength="5">
+</div>
+</div>
+
+<span class="label-title">평문 입력 (영문 및 숫자)</span>
+<textarea id="inputText" placeholder="텍스트를 입력하세요 (예: SOS)"></textarea>
+
+<span class="label-title">모스 부호 결과</span>
+<div id="outputResult" class="output-box"></div>
+</div>
+</div>
+
+<script>
+const morseCodeMap = {
+'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.',
+'F': '..-.', 'G': '--.', 'H': '....', 'I': '..', 'J': '.---',
+'K': '-.-', 'L': '.-..', 'M': '--', 'N': '-.', 'O': '---',
+'P': '.--.', 'Q': '--.-', 'R': '.-.', 'S': '...', 'T': '-',
+'U': '..-', 'V': '...-', 'W': '.--', 'X': '-..-', 'Y': '-.--',
+'Z': '--..',
+'1': '.----', '2': '..---', '3': '...--', '4': '....-', '5': '.....',
+'6': '-....', '7': '--...', '8': '---..', '9': '----.', '0': '-----'
+};
+
+const inputText = document.getElementById('inputText');
+const shortDot = document.getElementById('shortDot');
+const longDash = document.getElementById('longDash');
+const separator = document.getElementById('separator');
+const outputResult = document.getElementById('outputResult');
+
+function convertToMorse() {
+const text = inputText.value.toUpperCase();
+const dotChar = shortDot.value;
+const dashChar = longDash.value;
+const sepChar = separator.value;
+
+let result = [];
+
+for (let char of text) {
+if (char === ' ') continue;
+
+if (morseCodeMap[char] !== undefined) {
+let customMorse = morseCodeMap[char]
+.replace(/./g, dotChar)
+.replace(/-/g, dashChar);
+result.push(customMorse);
+}
+}
+
+outputResult.textContent = result.join(sepChar);
+}
+
+inputText.addEventListener('input', convertToMorse);
+shortDot.addEventListener('input', convertToMorse);
+longDash.addEventListener('input', convertToMorse);
+separator.addEventListener('input', convertToMorse);
+
+// 초기 실행
+convertToMorse();
+</script>
+
+</body>
+</html>
