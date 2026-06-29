@@ -29,7 +29,13 @@
                 0px 9px 15px 0px rgba(45, 55, 155, 0.04);
             --glass-bg: rgba(255, 255, 255, 0.55);
             /* 모든 요소에 들어갈 연하고 부드러운 윤곽선 스타일 */
-            --sub-border: 1.5px solid rgba(160, 185, 240, 0.35);
+            --sub-border: linear-gradient(
+                to top right,
+                rgba(45, 55, 155, 0.25) 5%,
+                rgba(70, 105, 245, 0.35) 25%,
+                rgba(70, 105, 245, 0.35) 75%,
+                rgba(45, 55, 155, 0.25) 95%
+            );
             --border-style: 1.5px solid transparent;
             --r: 20px;
         }
